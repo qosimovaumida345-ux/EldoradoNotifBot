@@ -202,7 +202,7 @@ def format_telegram_notification(subject, sender, body, order_info):
         "🔔 <b>Yangi xabar - Eldorado.gg</b>",
         "",
         f"📌 <b>Mavzu:</b> {subject or 'No subject'}",
-        f"📧 <b>Jo'natuvchi:</b> {sender or \"Noma'lum\"}",
+        f"📧 <b>Jo'natuvchi:</b> {sender or 'Noma\'lum'}",
     ]
 
     if order_info:
