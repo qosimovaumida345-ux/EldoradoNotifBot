@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: eldorado-order-monitor
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    envVars:
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: SENDER_FILTER
+        value: eldorado.gg
+      - key: CHECK_INTERVAL_SECONDS
+        value: "20"
+      - key: MAX_EMAILS_TO_CHECK
+        value: "50"
+      - key: SEEN_UIDS_LIMIT
+        value: "500"
