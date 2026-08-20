@@ -202,7 +202,7 @@ def format_telegram_notification(subject, sender, body, order_info):
         "🔔 <b>Yangi xabar - Eldorado.gg</b>",
         "",
         f"📌 <b>Mavzu:</b> {subject or 'No subject'}",
-        f"📧 <b>Jo'natuvchi:</b> {sender or 'Noma'lum'}",
+        f"📧 <b>Jo'natuvchi:</b> {sender or \"Noma'lum\"}",
     ]
 
     if order_info:
@@ -218,7 +218,7 @@ def format_telegram_notification(subject, sender, body, order_info):
     return "\n".join(lines)
 
 
-def process_message(mail_id, uid_str):
+def process_message(mail, mail_id):
     status, msg_data = mail.fetch(mail_id, "(RFC822)")
     if status != "OK":
         return False
@@ -231,7 +231,6 @@ def process_message(mail_id, uid_str):
             subject = decode_mime_words(msg.get("Subject", "(mavzusiz)"))
             sender = decode_mime_words(msg.get("From", "(nomalum)"))
             body = get_email_body(msg)
-            text = f"{subject} {body}".lower()
 
             logger.info(f"Yangi xat: sender={sender}, subject={subject}, body_preview={body[:120]}")
 
@@ -277,12 +276,11 @@ def check_inbox_once(seen_uids):
             if uid_str in seen_uids:
                 continue
 
-            if process_message(mail_id, uid_str):
+            if process_message(mail, mail_id):
                 new_uids.add(uid_str)
             else:
-                # Agar bu Eldorado emas bo'lsa ham qatorni ko'rilgan qilib qo'ymaymiz.
-                # Faqat haqiqiy Eldorado xatlari uchun seen_uids ni saqlaymiz.
-                # Bunday holda, keyingi ishga tushishda yana tekshiriladi.
+                # Bu Eldorado xati bo'lmasa ham kaytadan tekshirishga ruxsat beramiz.
+                # Shuning uchun ko'rilgan ro'yxatga qo'shmaymiz.
                 pass
 
             new_uids.add(uid_str)
