@@ -53,6 +53,8 @@ secrets/
 # Temporary files
 *.tmp
 *.temp
+seen_uids.json
+config.json
 
 # OS
 .DS_Store

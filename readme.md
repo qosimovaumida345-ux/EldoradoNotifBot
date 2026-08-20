@@ -1,79 +1,72 @@
-# Eldorado.gg → Telegram Monitor Bot
+# ⚡ Eldorado.gg -> Telegram Order & Message Monitor Bot
 
-Gmail'ga kelgan Eldorado.gg xabarlarini (yangi buyurtma, xabar va h.k.) darhol Telegram'ga yuboradi.
+Gmail pochtangizga Eldorado.gg dan kelgan barcha:
+- 🛒 **Yangi buyurtmalar (New Orders)**
+- 💬 **Xaridor chat xabarlari (Buyer Messages - TalkJS)**
+- ⚠️ **Buyurtma bo'yicha dispute/shikoyatlar (Disputes)**
+- ⚖️ **Dispute yakunlari (Dispute Won / Lost)**
+- 🔐 **Akkaunt tasdiqlash bildirishnomalari**
 
-## 1. O'rnatish
+kabilarni IMAP orqali har 20 soniyada tekshirib, darhol Telegram botingizga chiroyli va qulay tugmalar bilan yuboradi.
 
-Kompyuteringizda Python 3.8+ o'rnatilgan bo'lishi kerak.
+---
+
+## 🚀 Xususiyatlari
+
+1. **Render.com Web Service bilan 100% mos:**
+   - O'rnatilgan HTTP Health Check serveri (`/health`, `/`) orqali Render portini darhol ulaydi (`Build successful` -> `Live`).
+   - Hech qanday "Port scan timeout" yoki deploy error bermaydi.
+2. **Kengaytirilgan xat tahlili:**
+   - O'yin nomi (Game), Kategoriya (Category), Buyurtma narxi (Price), Order ID (UUID) va to'g'ridan-to'g'ri buyurtma havolasini avtomatik ajratib oladi.
+   - Xaridor yuborgan chat xabarlarini aniqlaydi va ko'rsatadi.
+3. **Telegram Inline Tugmalar:**
+   - Xabar tagida to'g'ridan-to'g'ri `[👉 Buyurtmaga o'tish]` yoki `[💬 Chatni ochish]` tugmasi bo'ladi.
+4. **Takrorlanishdan himoya (Deduplication):**
+   - Ko'rilgan xatlar ID lari xotirada saqlanadi, bitta xabar ikki marta yuborilmaydi.
+5. **Avtomatik qayta ulanish:**
+   - Internet uzilishi yoki Gmail IMAP uzilishida bot o'chib qolmaydi, avtomatik qayta ulanadi.
+
+---
+
+## ⚙️ Sozlash (Environment Variables)
+
+Render.com da `Environment` bo'limiga yoki mahalliy `.env` faylga quyidagi o'zgaruvchilarni kiriting:
+
+| O'zgaruvchi | Tavsif | Misol |
+|---|---|---|
+| `GMAIL_USER` | Gmail pochtangiz manzili | `misol@gmail.com` |
+| `GMAIL_APP_PASSWORD` | Google Hisobingizdagi 16 xonali Ilova Paroli (App Password) | `xxxx xxxx xxxx xxxx` |
+| `TELEGRAM_BOT_TOKEN` | @BotFather dan olingan bot tokeni | `123456789:ABCdef...` |
+| `TELEGRAM_CHAT_ID` | Botingiz sizga yozishi uchun Telegram Chat ID | `123456789` |
+| `CHECK_INTERVAL_SECONDS` | Har necha soniyada tekshirish | `20` |
+| `MAX_EMAILS_TO_CHECK` | Har safar tekshiriladigan oxirgi xatlar soni | `50` |
+| `PORT` | Render.com porti (Render avtomatik beradi) | `10000` |
+
+---
+
+## 🌐 Render.com ga Deploy qilish
+
+1. GitHub dagi ushbu omborni Render.com bilan ulang:
+   - **Type:** `Web Service`
+   - **Name:** `EldoradoNotifBot`
+   - **Runtime:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python app.py`
+2. **Environment Variables** bo'limida `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` qiymatlarini kiriting.
+3. **Save & Deploy** tugmasini bosing.
+4. Bot darhol ishga tushadi va Telegramingizga `✅ Eldorado Monitor Bot ishga tushdi va faol!` deb xabar jo'natadi.
+
+---
+
+## 💻 Mahalliy (Kompyuterda) ishga tushirish
 
 ```bash
-# 1. Papkaga kiring
-cd eldorado_bot
-
-# 2. Kerakli kutubxonani o'rnating
+# 1. Kutubxonalarni o'rnating
 pip install -r requirements.txt
+
+# 2. .env faylini to'ldiring
+cp .env.example .env
+
+# 3. Ishga tushiring
+python app.py
 ```
-
-## 2. Ishga tushirish
-
-```bash
-python monitor.py
-```
-
-Bot ishga tushganda:
-- Birinchi marta ishga tushganda, mavjud eski xatlarni "ko'rilgan" deb belgilaydi (ularni qayta yubormaslik uchun) va Telegram'ga "Bot ishga tushdi" degan xabar yuboradi.
-- Shundan keyin har 20 soniyada Gmail'ni tekshiradi va Eldorado'dan kelgan **yangi** xatni darhol Telegram'ga yuboradi.
-- Xat Gmail'da "o'qilmagan" holida qoladi — dasturingiz uni o'qilgan deb belgilamaydi.
-
-To'xtatish uchun: `Ctrl + C`
-
-## 3. 24/7 ishlashi uchun (kompyuter yopilganda ham)
-
-Oddiy `python monitor.py` faqat siz kompyuteringizni ochiq qo'yganingizda ishlaydi. 24/7 tinimsiz ishlashi uchun quyidagi variantlardan birini tanlang:
-
-### Variant A — Bepul VPS (tavsiya etiladi)
-Oracle Cloud Free Tier, yoki shunga o'xshash bepul serverga joylashtiring:
-1. Serverga ulaning (SSH)
-2. Python va kerakli kutubxonalarni o'rnating
-3. `screen` yoki `tmux` yordamida fonda ishga tushiring:
-   ```bash
-   screen -S eldorado_bot
-   python3 monitor.py
-   # Ctrl+A keyin D bosib screen'dan chiqing (bot ishlashda davom etadi)
-   ```
-4. Qaytib kirish: `screen -r eldorado_bot`
-
-### Variant B — systemd service (Linux serverida doimiy ishlashi uchun)
-`/etc/systemd/system/eldorado-bot.service` fayl yarating:
-```ini
-[Unit]
-Description=Eldorado Telegram Monitor
-After=network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/TO'LIQ/YOL/eldorado_bot
-ExecStart=/usr/bin/python3 /TO'LIQ/YOL/eldorado_bot/monitor.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-Keyin:
-```bash
-sudo systemctl enable eldorado-bot
-sudo systemctl start eldorado-bot
-```
-
-## 4. Sozlamalarni o'zgartirish
-
-`monitor.py` faylining boshida quyidagilarni o'zgartirish mumkin:
-- `CHECK_INTERVAL_SECONDS` — necha soniyada bir tekshirish (default: 20)
-- `SENDER_FILTER` — qaysi jo'natuvchidan kelgan xatlarni kuzatish (default: "eldorado.gg")
-
-## 5. Muhim xavfsizlik eslatmasi
-
-`monitor.py` faylida Gmail App Password va Telegram Bot Token ochiq holda saqlangan.
-- Bu faylni **hech kimga yubormang** va GitHub kabi ochiq joyga yuklamang.
-- Agar token yoki parol "sizib ketgan" deb o'ylasangiz — Google App Password'ni bekor qilib, yangisini yarating, va Telegram'da @BotFather orqali `/revoke` bilan tokenni yangilang.
